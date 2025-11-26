@@ -1,0 +1,321 @@
+Project Overview: Pseudo-code to C++ Converter
+=============================================
+
+This project implements a small end-to-end system that converts a custom
+pseudo-language into C++.
+
+At a high level, it consists of:
+- A Python backend that lexes and parses the pseudo-language and generates C++.
+- A Flask HTTP API that exposes this converter.
+- A simple CLI wrapper for offline use.
+- A React frontend that interacts with the HTTP API.
+- Supporting configuration, tests, and helper modules.
+
+
+Root-level Python backend files
+-------------------------------
+
+1. lexer.py
+   - Defines the lexical analyzer (lexer) for the custom pseudo-language using PLY.
+   - Declares the token set, including:
+     - Keywords like \\Fn, \\While, \\For, \\If, \\Else, \\KwRet, \\Break, \\Cont,
+       \\Print, \\Scan.
+     - Identifiers, numbers, strings, chars, and boolean literals.
+     - Operators (arithmetic, comparison, logical) and punctuation symbols
+       (parentheses, braces, semicolons, commas).
+   - Handles:
+     - Whitespace and newlines, tracking line numbers.
+     - Single-line comments ("// ...") and multi-line comments ("/* ... */").
+   - Builds and exports a PLY lexer instance named `lexer` that tokenizes
+     input pseudo-code for use by `parser.py`.
+
+2. parser.py
+   - Implements parsing, semantic tracking, and C++ code generation using
+     PLY (yacc) on top of `lexer.py`.
+   - Imports token definitions from `lexer.py` and defines grammar rules for
+     the pseudo-language, including:
+     - A single top-level `program` containing exactly one `function`.
+     - Function bodies consisting of a list of statements (`stmt_list`).
+     - Statement types:
+       * Variable assignment (simple and expression-based).
+       * `if` statements.
+       * `while` loops.
+       * `for` loops with `init; condition; update` clauses.
+       * `return` statements.
+     - Expression grammar for arithmetic operations, grouping with
+       parentheses, and comparison/relational conditions.
+   - Type management and symbol table:
+     - Maintains a global `symbol_table` mapping variable names to their
+       C++ datatypes (e.g., "int", "float", "string", "char", etc.).
+     - Resets `symbol_table` and `has_return` for each new parse to avoid
+       leaking state between parses.
+     - Uses `infer_type(value)` to derive types from literal constants.
+     - Uses `ask_type(var)` (via a pluggable `type_provider` callback) to
+       obtain a datatype for identifiers when inference is not possible.
+     - `handle_assignment(var, value, is_expression)` centralizes how
+       assignments update `symbol_table`:
+       * For `b = a`, ensures that `a` has a type (asking for it if needed)
+         and then assigns the same type to `b`.
+       * For constant and expression-based assignments, assigns or requests
+         types as appropriate.
+     - Ensures that any identifier used in expressions (e.g., within
+       `if` conditions or arithmetic) has a recorded datatype by consulting
+       `symbol_table` and calling `ask_type` when needed.
+   - C++ code generation:
+     - Constructs an internal AST from the grammar rules and then walks it in
+       `generate_cpp(parsed, indent=0)`.
+     - Uses `_format_for_assignment(assign_node, include_type=True)` to
+       render assignment statements purely as `var = value` (no embedded type
+       keywords).
+     - For each parsed function node:
+       * Emits a C++ function definition with the appropriate return type
+         (tracked via `has_return`).
+       * Declares all known variables at the start of the function using
+         `<datatype> <identifier>;` (e.g., `int a; float b;`).
+       * Then emits assignments, control-flow constructs, and returns.
+     - Delegates the code generation for `if`, `for`, and `while` constructs
+       to the helper modules under `control_flow/` (see below).
+     - `to_cpp(parsed)` wraps the generated function(s) with:
+       * A standard header: `#include <bits/stdc++.h>\nusing namespace std;`.
+       * A `main()` function that calls the single parsed function and
+         returns 0.
+     - Exports the PLY parser instance as `parser = yacc.yacc()` for use by
+       both CLI and HTTP interfaces.
+
+3. app.py
+   - Provides a command-line interface (CLI) for converting pseudo-code
+     without running the HTTP server or frontend.
+   - Behavior:
+     - Registers a `cli_type_provider` callback that interactively asks the
+       user in the terminal to choose a datatype when needed.
+     - Reads pseudo-code from `input.txt` in the project root.
+     - Parses the code using `parser.parse(...)` from `parser.py`.
+     - Converts the parsed AST to C++ via `to_cpp(...)`.
+     - Prints the generated C++ code to stdout.
+     - Writes the generated C++ to `output.cpp` in the project root.
+   - Intended mainly for local development, experimentation, and debugging.
+
+4. server.py
+   - Implements a Flask-based HTTP API around the parser and code generator
+     for use by the React frontend (and any other HTTP clients).
+   - Key elements:
+     - Creates a Flask app instance and configures CORS to allow requests
+       from the frontend (default `http://localhost:3000`) and other origins.
+     - Defines `make_http_type_provider(type_hints)` to create a
+       non-interactive type provider that gets variable datatypes from the
+       incoming HTTP request body instead of reading from stdin.
+     - Registers this provider with `register_type_provider(...)` on each
+       request so that parsing never blocks on input.
+   - Endpoints:
+     - `POST /convert`
+       * Accepts JSON payloads containing:
+         - `code`: the pseudo-code string to convert.
+         - `types`: a mapping from variable name to datatype, provided by the
+           frontend based on user input.
+       * Validates that `code` is not empty.
+       * Parses the pseudo-code and generates C++ using `parser` and
+         `to_cpp` from `parser.py`.
+       * On success, returns: `{ "cpp": "..." }` with HTTP 200.
+       * On `MissingTypeError`, returns a structured error indicating which
+         variable’s type is missing and lists valid datatypes so the
+         frontend can prompt the user.
+       * On `SyntaxError`, returns an error message with HTTP 400.
+       * On any other exception, returns a generic internal error with
+         HTTP 500.
+     - `GET /health`
+       * Simple health-check endpoint returning `{ "status": "ok" }`.
+   - Running `server.py` directly starts the Flask development server on
+     `0.0.0.0:5000` with debug mode enabled.
+
+5. requirements.txt
+   - Lists the Python package dependencies required for the backend:
+     - `ply`        – Parser/lexer generator used by `lexer.py` and `parser.py`.
+     - `flask`      – Web framework providing the HTTP API in `server.py`.
+     - `flask-cors` – CORS handling for cross-origin frontend requests.
+
+6. input.txt
+   - Sample or working input file for the CLI tool (`app.py`).
+   - Contains pseudo-code that will be read, parsed, and converted to C++.
+
+7. output.cpp
+   - Output file generated by the CLI (`app.py`).
+   - Contains the most recently generated C++ translation unit from
+     `input.txt`.
+
+8. parser.out
+   - Diagnostic file generated by PLY containing parser analysis information
+     (e.g., states and shift/reduce tables).
+   - Not required at runtime but useful for debugging grammar issues.
+
+9. parsetab.py
+   - Automatically generated parser table module created by PLY.
+   - Encodes the compiled parsing tables derived from the grammar rules in
+     `parser.py`.
+   - Should not be edited manually; it is regenerated by PLY when the
+     grammar changes.
+
+10. WARP.md
+    - Documentation file specifically for the Warp (warp.dev) environment.
+    - Describes the project architecture, main backend and frontend
+      components, dependencies, and common development commands.
+    - Intended to help tools and developers understand how to interact with
+      the repository.
+
+
+Control-flow helper package
+---------------------------
+
+11. control_flow/ (package)
+    - Package that groups helper modules for generating C++ code for
+      control-flow constructs.
+
+    a. control_flow/__init__.py
+       - Marks `control_flow` as a Python package.
+       - Contains a short docstring describing the purpose of the package.
+
+    b. control_flow/if.py
+       - Provides a helper function `generate_if_cpp(stmt, indent, generate_cpp)`.
+       - Responsible for turning an internal `if`-statement node from the
+         parser into properly indented C++ code of the form:
+         `if (<condition>) { ... }`.
+       - Uses `generate_cpp` (passed in) to recursively emit C++ for the
+         nested body.
+
+    c. control_flow/for.py
+       - Provides `generate_for_cpp(stmt, indent, format_assignment, generate_cpp)`.
+       - Generates C++ `for` loops from the parser’s internal `for` node
+         representation, assembling:
+         - The initialization clause (formatted via `format_assignment`).
+         - The loop condition string.
+         - The update clause (also via `format_assignment`, but without type
+           redeclaration).
+       - Produces loops of the form:
+         `for (init; condition; update) { ... }` with proper indentation.
+
+    d. control_flow/while.py
+       - Provides `generate_while_cpp(stmt, indent, generate_cpp)`.
+       - Generates C++ `while` loops from the parser’s `while` node
+         representation, emitting code like:
+         `while (<condition>) { ... }` with correct indentation and nested
+         body generation.
+
+
+Frontend (React application)
+----------------------------
+
+12. frontend/
+    - Contains the React single-page application that provides a two-pane
+      UI for writing pseudo-code and viewing generated C++.
+
+    a. frontend/package.json
+       - Standard Node.js/React package manifest.
+       - Defines scripts such as:
+         - `start` – Runs the Flask backend (`python server.py`) and the
+           React dev server concurrently via `concurrently` and
+           `react-scripts start`.
+         - `build` – Builds the production bundle of the frontend.
+         - `test` – Runs the Jest-based test runner provided by
+           `react-scripts`.
+       - Declares frontend dependencies:
+         - `react`, `react-dom`, `react-scripts` for the React app.
+         - `axios` for making HTTP requests to the backend.
+         - `concurrently` for running multiple dev processes at once.
+
+    b. frontend/public/index.html
+       - Minimal HTML shell for the React app.
+       - Contains a `<div id="root"></div>` element where the React app is
+         mounted.
+       - Sets the page title to something like "Pseudo ➜ C++ Converter".
+
+    c. frontend/src/index.js
+       - Entry point for the React application.
+       - Creates the root React DOM node and renders the `<App />` component
+         inside `#root` in `index.html`.
+       - Imports the main stylesheet `App.css`.
+
+    d. frontend/src/App.js
+       - Main React component implementing the user interface.
+       - Key responsibilities:
+         - Manages state for:
+           * `code` – the pseudo-code text in the left-hand editor.
+           * `cpp` – the generated C++ text in the right-hand editor.
+           * `loading` and `error` – UI status indicators.
+           * `typeHints` – a mapping from variable name to datatype, used to
+             avoid backend prompts and to drive type resolution.
+           * `pendingVar` and `selectedType` – used when the backend reports
+             a missing datatype for a variable.
+         - `handleConvert`:
+           * Sends a `POST` request to `http://localhost:5000/convert` with
+             the current code and type hints using `axios`.
+           * On success, updates the C++ output.
+           * On a `missing_type` error, sets `pendingVar` so the UI can ask
+             the user to choose a datatype.
+         - `handleConfirmType`:
+           * Stores the selected datatype for `pendingVar` in `typeHints`.
+           * Re-sends the conversion request with updated type information.
+         - `handleCopy`:
+           * Copies the generated C++ code to the clipboard.
+         - Renders:
+           * A header, side-by-side textareas for pseudo-code and C++ output,
+             and footer controls (convert, copy, type selection prompt,
+             and error display).
+
+    e. frontend/src/App.css
+       - Stylesheet for the React app.
+       - Defines layout (two-pane editor), fonts, spacing, colors, buttons,
+         and error banners to create a clean, modern UI.
+
+    f. frontend/node_modules/
+       - Directory (not typically committed in VCS) that contains installed
+         JavaScript dependencies when `npm install` is run.
+       - Includes automatically generated and third-party files, not
+         intended for manual editing.
+
+
+Tests and development support
+-----------------------------
+
+13. test/
+    - Contains sample pseudo-code inputs used for manual testing and
+      regression checking.
+    - Files include examples such as:
+      - `example1.txt`, `example2.txt`, ..., `example10.txt` – Various sample
+        programs in the pseudo-language to exercise different language
+        features.
+      - `syntax_missing_brace.txt` – Input designed to trigger a syntax
+        error due to a missing closing brace.
+      - `type_easy1.txt`, `type_from_id1.txt`, `type_medium1.txt`,
+        `type_hard1.txt` – Inputs focused on type inference and datatype
+        resolution scenarios.
+    - These are plain text files; they are not executed directly but are
+      consumed either by `app.py` (if copied to `input.txt`) or by other
+      ad-hoc testing workflows.
+
+14. .vscode/
+    - Editor configuration for Visual Studio Code.
+    - Typical contents include:
+      - `c_cpp_properties.json` – C/C++ IntelliSense and build configuration.
+      - `launch.json` – Debugger launch configurations.
+      - `settings.json` – Workspace-specific VS Code settings.
+    - This folder is for IDE support and does not affect runtime behavior.
+
+15. __pycache__/
+    - Auto-generated directory containing Python bytecode cache files
+      (e.g., `lexer.cpython-*.pyc`, `parser.cpython-*.pyc`, `parsetab.cpython-*.pyc`).
+    - Created automatically by Python to speed up imports.
+    - Safe to delete; they will be recreated as needed.
+
+
+Summary
+-------
+
+- Use `app.py` + `input.txt` when you want a simple terminal-based workflow
+  for converting pseudo-code into C++ and inspecting the raw output.
+- Use `server.py` together with the React app in `frontend/` when you want a
+  more user-friendly, browser-based experience with typed prompts for
+  variables.
+- Core language behavior (lexing, parsing, typing rules, and C++ generation)
+  lives in `lexer.py`, `parser.py`, and the `control_flow/` helpers.
+- Supporting files (`test/`, `.vscode/`, `parsetab.py`, `parser.out`,
+  `__pycache__/`) exist to improve development, debugging, or runtime
+  performance but are not part of the primary user-facing API.

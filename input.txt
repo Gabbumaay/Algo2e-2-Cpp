@@ -1,0 +1,8 @@
+\Fn Tournament() {
+    b \gets a;
+    \While (a < b) {
+        \If (a < 5) {
+            \KwRet b;
+        }
+    }
+}
