@@ -1,0 +1,15 @@
+\Fn findUnique() {
+    scores \gets 85;
+    scores \gets 92;
+    scores \gets 85;
+    scores \gets 78;
+    scores \gets 92;
+    scores \gets 95;
+    unique \gets 4;
+    minScore \gets 78;
+    maxScore \gets 95;
+    \If (unique > 3) {
+        \KwRet maxScore;
+    }
+    \KwRet minScore;
+}

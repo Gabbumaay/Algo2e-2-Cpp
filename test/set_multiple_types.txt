@@ -1,0 +1,10 @@
+\Fn multipleSetTypes() {
+    s1 \gets 10;
+    s1 \gets 20;
+    s1 \gets 30;
+    s2 \gets 50;
+    s2 \gets 100;
+    s2 \gets 150;
+    total \gets 6;
+    \KwRet total;
+}

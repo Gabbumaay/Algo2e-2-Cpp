@@ -1,0 +1,7 @@
+\Fn stringSetTest() {
+    \Decl stringSet;
+    stringSet \gets "apple";
+    stringSet \gets "banana";
+    stringSet \gets "mango";
+    \KwRet 1;
+}

@@ -1,0 +1,5 @@
+\Fn basicDeclaration() {
+    \Decl x;
+    x \gets 5;
+    \KwRet x;
+}

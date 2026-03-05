@@ -1,0 +1,14 @@
+\Fn mixedDeclarations() {
+    \Decl s;
+    \Decl count;
+    \Decl total;
+    
+    count \gets 0;
+    total \gets 0;
+    
+    s \gets 1;
+    s \gets 2;
+    s \gets 3;
+    
+    \KwRet total;
+}

@@ -1,0 +1,7 @@
+\Fn doubleSetTest() {
+    \Decl doubleSet;
+    doubleSet \gets 2.5;
+    doubleSet \gets 4.7;
+    doubleSet \gets 9.2;
+    \KwRet 1;
+}

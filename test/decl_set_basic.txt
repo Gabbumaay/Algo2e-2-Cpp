@@ -1,0 +1,7 @@
+\Fn setDeclaration() {
+    \Decl mySet;
+    mySet \gets 10;
+    mySet \gets 20;
+    mySet \gets 30;
+    \KwRet 1;
+}

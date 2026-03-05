@@ -1,0 +1,12 @@
+\Fn multipleSetExample() {
+    primes \gets 2;
+    primes \gets 3;
+    primes \gets 5;
+    primes \gets 7;
+    evens \gets 2;
+    evens \gets 4;
+    evens \gets 6;
+    evens \gets 8;
+    total \gets 8;
+    \KwRet total;
+}

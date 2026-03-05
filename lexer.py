@@ -3,7 +3,7 @@ import ply.lex as lex
 # List of token names
 tokens = (
     'FN', 'WHILE', 'FOR', 'IF', 'ELSE', 'RETURN', 'BREAK', 'CONTINUE',
-    'PRINT', 'SCAN',
+    'PRINT', 'SCAN', 'DECL',
     'ID', 'NUMBER', 'STRING', 'CHAR', 'BOOL',
     'ASSIGN', 'LT', 'GT', 'LE', 'GE', 'EQ', 'NE',
     'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'MOD',
@@ -23,6 +23,7 @@ t_BREAK     = r'\\Break'
 t_CONTINUE  = r'\\Cont'
 t_PRINT     = r'\\Print'
 t_SCAN      = r'\\Scan'
+t_DECL      = r'\\Decl'
 
 t_ASSIGN    = r'\\gets'
 t_LT        = r'<'
@@ -111,8 +112,10 @@ def t_newline(t):
 
 # Error handling
 def t_error(t):
-    print(f"❌ Illegal character '{t.value[0]}' at line {t.lexer.lineno}")
-    t.lexer.skip(1)
+    char = t.value[0]
+    lineno = t.lexer.lineno
+    # Raise SyntaxError with ASCII message (no emoji for cross-platform compatibility)
+    raise SyntaxError(f"Illegal character '{char}' at line {lineno}")
 
 
 # Build lexer

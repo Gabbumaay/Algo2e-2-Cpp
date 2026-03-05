@@ -1,0 +1,14 @@
+\Fn setWithLoop() {
+    numbers \gets 1;
+    numbers \gets 2;
+    numbers \gets 3;
+    numbers \gets 4;
+    numbers \gets 5;
+    i \gets 0;
+    sum \gets 0;
+    \While (i < 5) {
+        sum \gets sum + i;
+        i \gets i + 1;
+    }
+    \KwRet sum;
+}

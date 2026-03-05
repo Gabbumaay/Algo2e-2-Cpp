@@ -1,0 +1,11 @@
+\Fn setWithConditional() {
+    favorites \gets 10;
+    favorites \gets 25;
+    favorites \gets 42;
+    count \gets 3;
+    max \gets 42;
+    \If (count > 2) {
+        \KwRet max;
+    }
+    \KwRet 0;
+}

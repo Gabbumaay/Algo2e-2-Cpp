@@ -1,0 +1,14 @@
+\Fn declarationWithLoop() {
+    \Decl total;
+    \Decl count;
+    
+    count \gets 0;
+    total \gets 0;
+    
+    \While (count < 5) {
+        total \gets total + count;
+        count \gets count + 1;
+    }
+    
+    \KwRet total;
+}

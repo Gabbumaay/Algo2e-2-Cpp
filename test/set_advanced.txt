@@ -1,0 +1,13 @@
+\Fn advancedSet() {
+    numbers \gets 10;
+    numbers \gets 50;
+    numbers \gets 30;
+    numbers \gets 70;
+    numbers \gets 90;
+    size \gets 5;
+    max_val \gets 90;
+    \If (size > 3) {
+        \KwRet max_val;
+    }
+    \KwRet 0;
+}

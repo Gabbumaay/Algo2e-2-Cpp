@@ -1,0 +1,7 @@
+\Fn intSetTest() {
+    \Decl intSet;
+    intSet \gets 1;
+    intSet \gets 5;
+    intSet \gets 10;
+    \KwRet 1;
+}

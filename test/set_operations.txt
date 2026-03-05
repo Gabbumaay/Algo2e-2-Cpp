@@ -1,0 +1,7 @@
+\Fn setOps() {
+    s \gets 1;
+    s \gets 2;
+    s \gets 3;
+    count \gets 3;
+    \KwRet count;
+}

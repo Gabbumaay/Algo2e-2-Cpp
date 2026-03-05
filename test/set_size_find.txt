@@ -1,0 +1,8 @@
+\Fn setMethods() {
+    nums \gets 5;
+    nums \gets 10;
+    nums \gets 15;
+    nums \gets 5;
+    count \gets 3;
+    \KwRet count;
+}

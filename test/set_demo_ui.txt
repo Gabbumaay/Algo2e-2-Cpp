@@ -1,0 +1,10 @@
+\Fn demo() {
+    mySet \gets 10;
+    mySet \gets 20;
+    mySet \gets 15;
+    counter \gets 0;
+    \For (counter \gets 0; counter < 3; counter \gets counter + 1) {
+        counter \gets counter + 1;
+    }
+    \KwRet counter;
+}

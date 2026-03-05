@@ -4,7 +4,7 @@ from flask_cors import CORS
 from parser import parser, to_cpp, register_type_provider, MissingTypeError, valid_dtypes, parse_code
 
 app = Flask(__name__)
-CORS(app, resources={r"/convert": {"origins": ["http://localhost:3000", "*"]}})
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 
 def make_http_type_provider(type_hints: dict):

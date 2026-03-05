@@ -1,0 +1,13 @@
+\Fn firstFunction() {
+    data1 \gets 10;
+    data1 \gets 20;
+    data1 \gets 30;
+    \KwRet 1;
+}
+
+\Fn secondFunction() {
+    data2 \gets 40;
+    data2 \gets 50;
+    data2 \gets 60;
+    \KwRet 1;
+}

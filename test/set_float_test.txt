@@ -1,0 +1,7 @@
+\Fn floatSetTest() {
+    \Decl floatSet;
+    floatSet \gets 1.5;
+    floatSet \gets 3.2;
+    floatSet \gets 7.8;
+    \KwRet 1;
+}

@@ -1,0 +1,7 @@
+\Fn charSetTest() {
+    \Decl charSet;
+    charSet \gets 'a';
+    charSet \gets 'b';
+    charSet \gets 'c';
+    \KwRet 1;
+}

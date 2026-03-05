@@ -1,0 +1,12 @@
+\Fn duplicates() {
+    nums \gets 1;
+    nums \gets 2;
+    nums \gets 1;
+    nums \gets 3;
+    nums \gets 2;
+    nums \gets 4;
+    nums \gets 1;
+    total \gets 7;
+    unique \gets 4;
+    \KwRet unique;
+}

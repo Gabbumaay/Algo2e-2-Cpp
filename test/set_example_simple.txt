@@ -1,0 +1,7 @@
+\Fn simpleSet() {
+    mySet \gets 5;
+    mySet \gets 10;
+    mySet \gets 5;
+    mySet \gets 15;
+    \KwRet 1;
+}

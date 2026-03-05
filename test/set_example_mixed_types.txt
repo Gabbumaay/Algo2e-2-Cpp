@@ -1,0 +1,8 @@
+\Fn mixedDataTypes() {
+    uniqueValues \gets 100;
+    uniqueValues \gets 200;
+    uniqueValues \gets 300;
+    counter \gets 3;
+    sum \gets 600;
+    \KwRet counter;
+}

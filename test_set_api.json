@@ -1,0 +1,5 @@
+﻿{
+  "code": "\Fn testSet() {\n    s \gets 10;\n    s \gets 20;\n    s \gets 30;\n    \KwRet 1;\n}",
+  "types": {"s": "set", "function_return_type": "int"}
+}
+
