@@ -53,7 +53,14 @@ function App() {
 
   const checkBackend = async () => {
     try {
-      await axios.get("http://localhost:5000/health", { timeout: 3000 });
+      const res = await axios.get("http://localhost:5000/health", {
+        timeout: 1200,
+      });
+      const healthy = res?.data?.status === "ok";
+      if (!healthy) {
+        setBackendOnline(false);
+        return false;
+      }
       setBackendOnline(true);
       setError((prev) => (prev.startsWith("Backend is offline") ? "" : prev));
       return true;
@@ -64,9 +71,27 @@ function App() {
   };
 
   const handleConvert = async () => {
+    if (!backendOnline) {
+      setError("Backend is offline. Please start server.py and try again.");
+      setToast({
+        type: "error",
+        message: "Backend is offline",
+        position: "center",
+      });
+      setPendingVar(null);
+      // Refresh status in background without delaying the toast.
+      checkBackend();
+      return;
+    }
+
     const online = await checkBackend();
     if (!online) {
       setError("Backend is offline. Please start server.py and try again.");
+      setToast({
+        type: "error",
+        message: "Backend is offline",
+        position: "center",
+      });
       setPendingVar(null);
       return;
     }
@@ -175,7 +200,11 @@ function App() {
   return (
     <div className="app-root">
       {toast && (
-        <div className={`toast ${toast.type}`} role="status" aria-live="polite">
+        <div
+          className={`toast ${toast.type} ${toast.position === "center" ? "center" : ""}`}
+          role="status"
+          aria-live="polite"
+        >
           <span className="toast-dot" aria-hidden="true" />
           <span className="toast-message">{toast.message}</span>
           <button

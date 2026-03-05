@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "concurrently \"cd .. && python server.py\" \"react-scripts start\"",
+    "start": "react-scripts start",
+    "start:full": "concurrently \"cd .. && python server.py\" \"react-scripts start\"",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

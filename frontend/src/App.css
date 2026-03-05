@@ -368,6 +368,35 @@ body {
   border-color: rgba(239, 68, 68, 0.35);
 }
 
+.toast.center {
+  top: 50%;
+  left: 50%;
+  right: auto;
+  transform: translate(-50%, -50%);
+  min-width: 380px;
+  padding: 16px 22px;
+  border-radius: 16px;
+  font-size: 1.05rem;
+  gap: 14px;
+  border-width: 2px;
+  box-shadow: 0 24px 55px rgba(15, 23, 42, 0.28);
+  justify-content: center;
+  animation: toast-enter-center 180ms ease-out, toast-fade 2.2s ease-out forwards;
+}
+
+.toast.center .toast-dot {
+  width: 12px;
+  height: 12px;
+}
+
+.toast.center .toast-message {
+  font-weight: 600;
+}
+
+.toast.center .toast-close {
+  font-size: 1.3rem;
+}
+
 .toast-dot {
   width: 10px;
   height: 10px;
@@ -411,6 +440,17 @@ body {
   }
 }
 
+@keyframes toast-enter-center {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% - 8px)) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
 @keyframes toast-fade {
   0%,
   70% {
@@ -427,6 +467,16 @@ body {
     right: 16px;
     left: 16px;
     justify-content: space-between;
+  }
+
+  .toast.center {
+    top: 50%;
+    left: 50%;
+    right: auto;
+    min-width: 300px;
+    max-width: calc(100vw - 32px);
+    justify-content: center;
+    transform: translate(-50%, -50%);
   }
 
   .app-shell {
